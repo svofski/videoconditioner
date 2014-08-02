@@ -1,0 +1,24 @@
+set_global_assignment -entity "filter" -library "filter" -name IP_TOOL_NAME "altera_fir_compiler_ii"
+set_global_assignment -entity "filter" -library "filter" -name IP_TOOL_VERSION "13.0sp1"
+set_global_assignment -entity "filter" -library "filter" -name IP_TOOL_ENV "mwpim"
+set_global_assignment -library "filter" -name MISC_FILE [file join $::quartus(qip_path) "filter.cmp"]
+set_global_assignment -name SYNTHESIS_ONLY_QIP ON
+
+set_global_assignment -library "filter" -name VERILOG_FILE [file join $::quartus(qip_path) "filter.v"]
+set_global_assignment -library "filter" -name VERILOG_FILE [file join $::quartus(qip_path) "filter/altera_avalon_sc_fifo.v"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/auk_dspip_math_pkg_hpfir.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/auk_dspip_lib_pkg_hpfir.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/auk_dspip_avalon_streaming_controller_hpfir.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/auk_dspip_avalon_streaming_sink_hpfir.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/auk_dspip_avalon_streaming_source_hpfir.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/auk_dspip_roundsat_hpfir.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/dspba_library_package.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/dspba_library.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/filter_0002_rtl.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/filter_0002_ast.vhd"]
+set_global_assignment -library "filter" -name VHDL_FILE [file join $::quartus(qip_path) "filter/filter_0002.vhd"]
+set_global_assignment -library "filter" -name SDC_FILE [file join $::quartus(qip_path) "filter/filter_0002.sdc"]
+
+set_global_assignment -entity "filter_0002" -library "filter" -name IP_TOOL_NAME "altera_fir_compiler_ii"
+set_global_assignment -entity "filter_0002" -library "filter" -name IP_TOOL_VERSION "13.0"
+set_global_assignment -entity "filter_0002" -library "filter" -name IP_TOOL_ENV "mwpim"
