@@ -1,0 +1,17 @@
+_1/*
+_2/*
+db/*
+incremental_db/*
+*greybox_tmp/*
+*/greybox_tmp/*
+*.bak
+*-bak
+reports/*
+simulation/*
+src/fir/filter_sim/*
+stp1_auto_stripped.stp
+stp1_auto_stripped.stp
+iverilog/a
+*.out
+*.vcd
+iverilog/*.out

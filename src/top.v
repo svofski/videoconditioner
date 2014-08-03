@@ -10,8 +10,8 @@ module top(
         input [3:0]     KEY,
         output [9:0]    LEDr,
         output [7:0]    LEDg,
-        input [9:0]     SW,
 */
+        input [9:3]     SW,
         output [6:0]    HEX0,
         output [6:0]    HEX1,
         output [6:0]    HEX2,
@@ -122,19 +122,26 @@ always @(posedge clk_adc)
 
 wire hsync, vsync;
 wire [5:0] blacklevel;
+wire [5:0] threshold;
 assign blacklevel_pin = blacklevel;
 wire error;
-syncdetect(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered), .hsync(hsync), .vsync(vsync), .blacklevel(blacklevel), .error(error));        
-
+wire porch;
+syncdetect(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered), .hsync(hsync), .vsync(vsync), .blacklevel(blacklevel), .error(error), .porch(porch), .threshold(threshold));
+    
 assign GPIO_0[0] = hsync;
+assign GPIO_0[1] = vsync;
+assign GPIO_0[2] = xsync;
+
+wire xsync = ~(hsync ^ vsync);
         
 reg[RESOLUTION - 1:0] schmiltered;
 always @(posedge CLOCK_24[0])
-    //schmiltered <= filtered < blacklevel ? 0 : filtered;
-    //schmiltered <= ~hsync ? 0 : filtered[RESOLUTION + FIRLSB] ? 0 : filtered;
-    //schmiltered <= filtered[RESOLUTION + FIRLSB] ? 0 : filtered;
-    // the limiter is not working very well
-    schmiltered <= ~hsync ? 0 : filtered < blacklevel ? blacklevel : filtered > blacklevel + 24 ? blacklevel + 24 : filtered;
+    // cookie cut sync + limited signal
+    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered < blacklevel ? blacklevel : filtered > blacklevel + 24 ? blacklevel + 24 : filtered;
+    // cookie cut sync, no limiter
+    //schmiltered <= ~xsync ? 0 : filtered;
+    // plain filtered
+    //schmiltered <= filtered;
 
 //parameter FIRLSB = 16;
 parameter FIRLSB = 0;
@@ -165,7 +172,7 @@ assign GPIO_0[10] = four[0];
 assign GPIO_0[11] = 1'b0;
 
 
-SEG7_LUT_4 seg7display(HEX0, HEX1, HEX2, HEX3, blacklevel);
+SEG7_LUT_4 seg7display(HEX0, HEX1, HEX2, HEX3, {2'b0, threshold, 2'b0, blacklevel});
 
 
 endmodule
@@ -189,96 +196,3 @@ always @(posedge clk) begin
 end
 
 endmodule
-
-module syncdetect(input clk, input ce, input [5:0] cvbs, output reg hsync, output reg vsync, output reg [5:0] blacklevel, output reg error);
-parameter THRESH = 10;
-parameter S1 = 0;
-parameter S2 = 1;
-parameter S2A = 11;
-parameter S3 = 2;
-parameter S4 = 3;
-
-parameter CLK = 24e6;
-parameter HSYNC_TIME = CLK * 4.7e-6;
-parameter BACKPORCH_TIME = CLK * 5.7e-6;
-parameter REST_TIME = CLK * 64e-6 - (HSYNC_TIME + BACKPORCH_TIME);
-
-
-reg [3:0] state = S1;
-reg [15:0] timerA;
-reg [15:0] accu;
-
-reg hsync_int;
-always @*
-    hsync <= ~(thresh_bitcount == 8);
-
-wire thresh = cvbs < THRESH;
-wire filtered_thresh;
-reg [3:0] thresh_bitcount;
-reg [7:0] threshaccu;
-
-always @(posedge clk)
-    if (ce) begin
-        thresh_bitcount <= thresh_bitcount + thresh - threshaccu[7];
-        threshaccu <= {threshaccu[6:0], thresh};
-    end
-    
-
-always @(posedge clk) 
-    if (ce) begin
-        error <= 1'b0;
-        if (timerA > 0) timerA <= timerA - 1'b1;
-        
-        case (state)
-        S1: begin
-                // waiting
-                if (thresh) begin
-                    state <= S2;
-                    hsync_int <= 1'b0;
-                    timerA <= HSYNC_TIME; 
-                end 
-                else if (timerA == 0) begin
-                    error <= 1'b1;
-                    timerA <= HSYNC_TIME;
-                    state <= S1;
-                end
-            end
-        S2: begin
-                // in hsync
-                if (timerA == 0) begin
-                    // end hsync pulse
-                    hsync_int <= 1'b1;
-                    state <= S2A;
-                end 
-            end
-        S2A:begin
-                if (~thresh) begin
-                    timerA <= BACKPORCH_TIME;
-                    accu <= 0;
-                    state <= S3;
-                end
-            end
-        S3: begin
-                // on back porch
-                if (timerA == 0) begin
-                    timerA <= REST_TIME - HSYNC_TIME;
-                    blacklevel <= accu >> 7;
-                    state <= S4;
-                end
-                else begin
-                    accu <= accu + cvbs;
-                end
-            end
-        S4: begin
-                if (timerA == 0) begin
-                    // line ends
-                    timerA <= HSYNC_TIME;
-                    state <= S1;
-                end
-            end
-        default:;
-        endcase
-    end
-
-endmodule
-
