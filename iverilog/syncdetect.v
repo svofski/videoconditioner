@@ -13,7 +13,8 @@ parameter S6 = 5;
 
 parameter CLK = 24e6;
 parameter HSYNC_TIME = CLK * 4.7e-6;
-parameter BACKPORCH_TIME = CLK * 5.7e-6;
+//parameter BACKPORCH_TIME = CLK * 5.7e-6;
+parameter BACKPORCH_TIME = 128;
 parameter REST_TIME = CLK * 64e-6 - (HSYNC_TIME + BACKPORCH_TIME);
 
 assign threshold = r_threshold;
@@ -106,14 +107,8 @@ always @(posedge clk)
                 // on back porch
                 if (timerA == 0) begin
                     timerA <= REST_TIME - HSYNC_TIME;
-                    r_blacklevel <= accu >> 7;
-                    r_threshold <= (accu >> 8) + (accu >> 9);
-                    //r_threshold <=
-//                    if ((accu >> 7) < r_blacklevel) 
-//                        r_threshold <= r_threshold - 1;
-//                    else if ((accu >> 7) > r_blacklevel)
-//                        r_threshold <= r_threshold + 1;
-                       
+                    r_blacklevel <= (accu >> 7) + 1; // + 1 for extra blackness at the expense of dark tones
+                    r_threshold <= (accu >> 8) + (accu >> 9) - 1;
                     porch <= 1'b0;
                     state <= S4;
                 end

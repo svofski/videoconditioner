@@ -32,7 +32,8 @@ def rsig(n):
 
 # 0.2/0.05 looks ok but probably entirely useless
 # 0.1/0.05 perhaps better
-filter = fir(0.05, 0.1) #, 15)
+# most tested with 440pF filter: 0.05, 0.1 -- plenty of ripple
+filter = fir(0.025, 0.1) #, 15)
 print "#Filter length=%d" % len(filter)
 
 

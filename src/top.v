@@ -76,21 +76,18 @@ assign sample_ce_pin = CLOCK_24[0];
 
 wire clk_adc;
 wire clkx = clk_adc;// = clk_adc | clk_adc180;
-wire clk100;
-
-//clkbuf(.inclk(clk_adc | clk_adc180), .outclk(clkx));
-
 wire clk_out;
 
 pll(.inclk0(CLOCK_24[0]), .c0(clk_adc));//, .c1(clk_adc180));
+//assign clk_out = clk_adc;
 outpll(.inclk0(clk50mhz), .c0(clk_out), .c1(clk100));
 
 wire [RESOLUTION-1:0] adc1_val;
 
 sigmadelta adc1(.clk(clkx), .lvds(LVDS[3]), .feedback(ADCINT[3]));
 
-// factor = 80 good for filter + limiter
-accumulator #(.RESOLUTION(RESOLUTION), .FACTOR(80)) cie1(.clk(clkx), .stream(ADCINT[3]), .value(adc1_val));
+// factor = 80 good for filter + limiter = 24
+accumulator #(.RESOLUTION(RESOLUTION), .FACTOR(110)) cie1(.clk(clkx), .stream(ADCINT[3]), .value(adc1_val));
 
 reg [29:0] filtered;
 wire [29:0] filtered_u;
@@ -136,12 +133,14 @@ wire xsync = ~(hsync ^ vsync);
         
 reg[RESOLUTION - 1:0] schmiltered;
 always @(posedge CLOCK_24[0])
-    // cookie cut sync + limited signal
-    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered < blacklevel ? blacklevel : filtered > blacklevel + 24 ? blacklevel + 24 : filtered;
+    if (SW[9])
+    // cookie cut sync + limited signal    
+    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered < blacklevel ? blacklevel : filtered > blacklevel + 32 ? blacklevel + 32 : filtered;
     // cookie cut sync, no limiter
     //schmiltered <= ~xsync ? 0 : filtered;
+    else
     // plain filtered
-    //schmiltered <= filtered;
+    schmiltered <= filtered;
 
 //parameter FIRLSB = 16;
 parameter FIRLSB = 0;
@@ -165,9 +164,27 @@ wire [3:0] four = {4{dac[DAC_RESOLUTION]}};
 
 
 wire [3:0] nopwm = sample[RESOLUTION-1:RESOLUTION-4];
-assign VGA_R = four;
-assign VGA_G = four;
-assign VGA_B = four;
+
+
+reg [5:0] babor;
+always @(posedge CLOCK_24[0])
+    if (divctr[0] == 0)
+        babor <= babor + 1;
+
+wire [5:0] sin;        
+sintable sintable(.address(babor), .clock(CLOCK_24[0]), .q(sin));
+        
+        
+wire [5:0] vo = sample;
+
+assign VGA_R = {vo[5:2]};
+assign VGA_G = {vo[5:2]};
+assign VGA_B[0] = vo[1];
+assign VGA_B[1] = vo[0] ? 1'bz : 1'b0;
+//assign VGA_B[2] = vo[5] ? 1'bz: (vo[0] ? 1'bz : 1'b0);
+assign VGA_B[2] = 1'bz;
+assign VGA_B[3] = 1'bz;
+//assign VGA_B = {3'bz, vo[1]};
 assign GPIO_0[10] = four[0];
 assign GPIO_0[11] = 1'b0;
 
