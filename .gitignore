@@ -27,3 +27,5 @@ hw/de1-vga-out-cache.lib
 hw/de1-vga-out.sch
 
 hw/de1-vga-out.svg
+
+*.swp
