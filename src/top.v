@@ -135,7 +135,7 @@ reg[RESOLUTION - 1:0] schmiltered;
 always @(posedge CLOCK_24[0])
     if (SW[9])
     // cookie cut sync + limited signal    
-    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered < blacklevel ? blacklevel : filtered > blacklevel + 32 ? blacklevel + 32 : filtered;
+    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered < blacklevel ? blacklevel : filtered > blacklevel + 24 ? blacklevel + 24 : filtered;
     // cookie cut sync, no limiter
     //schmiltered <= ~xsync ? 0 : filtered;
     else
@@ -169,22 +169,25 @@ wire [3:0] nopwm = sample[RESOLUTION-1:RESOLUTION-4];
 reg [5:0] babor;
 always @(posedge CLOCK_24[0])
     if (divctr[0] == 0)
-        babor <= babor + 1;
+        //if (babor < 46)
+            babor <= babor + 1;
+        //else    
+        //    babor <= 0;
 
 wire [5:0] sin;        
 sintable sintable(.address(babor), .clock(CLOCK_24[0]), .q(sin));
         
         
-wire [5:0] vo = sample;
+wire [5:0] vo = babor;
 
-assign VGA_R = {vo[5:2]};
-assign VGA_G = {vo[5:2]};
-assign VGA_B[0] = vo[1];
-assign VGA_B[1] = vo[0] ? 1'bz : 1'b0;
-//assign VGA_B[2] = vo[5] ? 1'bz: (vo[0] ? 1'bz : 1'b0);
-assign VGA_B[2] = 1'bz;
-assign VGA_B[3] = 1'bz;
-//assign VGA_B = {3'bz, vo[1]};
+
+wire [11:0] dacval;
+dactable dactaklakpak(.address(sample), .clock(CLOCK_24[0]), .q(dacval));
+
+
+assign VGA_R = dacval[3:0];
+assign VGA_G = dacval[7:4];
+assign VGA_B = dacval[11:8];
 assign GPIO_0[10] = four[0];
 assign GPIO_0[11] = 1'b0;
 

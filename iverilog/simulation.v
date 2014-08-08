@@ -1,6 +1,8 @@
 `timescale 100ps/10ps
 
-`define BKSYNC
+//`define NORMALSYNC
+//`define BKSYNC
+`define VECTORSYNC
 
 module simulation;
 
@@ -38,6 +40,10 @@ parameter EQP = CLK * EQP_T;
 
 parameter BLACK = 12;
 
+`ifdef VECTORSYNC
+parameter VSYNC_LONG_N = CLK * 28e-6;
+`endif
+
 reg clk;
 integer line;
 integer pixel;
@@ -68,6 +74,9 @@ reg hsync, vsync;
     $display("Back porch time=%dus (%d clocks)", BPORCH_T*1e6, BPORCH);
   end
 
+reg [15:0] floor_r = 0;
+wire [5:0] floor = floor_r[15:12];
+
 always @(posedge clk) begin
     pixel <= pixel + 1;
     if (pixel == LINE) begin
@@ -78,7 +87,46 @@ always @(posedge clk) begin
             line <= 0;
         $display("Line %d", line);
     end
+`ifdef VECTORSYNC
+    if (line > 22 && line < 25) begin
+        glob <= 0;
+        if (floor_r > 0) 
+            floor_r <= floor_r - 6;
+        if (pixel < FPORCH) 
+            cvbs <= floor + BLACK;
+        else if (pixel < FPORCH + HS) 
+            cvbs <= floor;
+        else if (pixel < FPORCH + HS + BPORCH)
+            cvbs <= floor + BLACK;
+        else 
+            cvbs <= floor + BLACK;
+    end
+    else if (line >= 25) begin
+        glob <= 0;
+        if (floor_r > 0) 
+            floor_r <= floor_r - 6;
+        if (pixel < FPORCH) 
+            cvbs <= floor + BLACK;
+        else if (pixel < FPORCH + HS) 
+            cvbs <= floor;
+        else if (pixel < FPORCH + HS + BPORCH)
+            cvbs <= floor + BLACK;
+        else 
+            cvbs <= 15 + pixel[3:0];
+    end 
+    else begin
+        glob <= glob + 1;
+        if (glob < CLK * 6 * 64e-6)
+            floor_r <= floor_r + 2;
+        else if (glob < CLK * 20 * 64e-6)
+            floor_r <= floor_r + 0;
 
+        if (pixel < VSYNC_LONG_N)
+            cvbs <= floor;
+        else 
+            cvbs <= floor + BLACK;
+    end
+`endif
 `ifdef BKSYNC
     if (line > 2) begin
         glob <= 0;
@@ -92,33 +140,15 @@ always @(posedge clk) begin
         else 
             cvbs <= 15 + pixel[3:0];
     end
-    else if (1) begin
+    else begin
         glob <= glob + 1;
-    /*
-        if (pixel < FPORCH)
-            hsync <= 1;
-        else if (pixel < FPORCH + HS)
-            hsync <= 0;
-        else 
-            hsync <= 1;
-
-        if (pixel < LSYNC)
-            vsync <= 0;
-        else if (pixel < LINE/2)
-            vsync <= 1;
-        else if (pixel < LINE/2 + LSYNC)
-            vsync <= 0;
-        else
-            vsync <= 1;
-
-        cvbs <= (vsync) ? BLACK : 0;
-    */
         if (glob % EQP < SSYNC)
             cvbs <= BLACK;
         else 
             cvbs <= 0;
     end
-`else
+`endif
+`ifdef NORMALSYNC
     if (line > 5) begin
         // these would be end of frame lines
         if (pixel < FPORCH) 
@@ -167,7 +197,7 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    if (line == 10) begin
+    if (line == 27) begin
         $display("Simulation terminated");
         $finish;
     end
