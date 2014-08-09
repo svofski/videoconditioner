@@ -14,7 +14,11 @@ parameter STEP = 416;
 
 parameter CLK = 24e6;
 
+`ifdef VECTORSYNC
+parameter HS_T = 10.7e-6;
+`else
 parameter HS_T = 4.7e-6;
+`endif
 parameter HS = CLK * HS_T;
 
 parameter FPORCH_T = 1.65e-6;
@@ -59,7 +63,7 @@ reg hsync, vsync;
   // Generate master clock
   initial begin
     clk = 1'b1;
-    pixel = 0;
+    pixel = 600;
     glob = EQP/3;
     line = 319;
     forever #(STEP/2) clk = ~clk;

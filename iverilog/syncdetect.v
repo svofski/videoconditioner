@@ -19,10 +19,12 @@ parameter HSYNC_TIME = CLK * 4.7e-6;
 parameter BACKPORCH_TIME = 128;
 parameter REST_TIME = CLK * 64e-6 - (HSYNC_TIME + BACKPORCH_TIME);
 
+parameter LINE_TIME = CLK * 64e-6;
+
 //parameter VSYNC_IN_TIME = CLK * 27e-6; // Vector-06C VSYNC zero time
 parameter VSYNC_IN_TIME = HSYNC_TIME * 3;
 
-parameter VSYNC_LONG = CLK * 1480e-6; //6*64e-6;
+parameter VSYNC_LONG = CLK * 1430e-6; //6*64e-6;
 //parameter VSYNC_LONG = CLK * 6*64e-6 - VSYNC_IN_TIME - 256;
 
 assign threshold = r_threshold;
@@ -36,7 +38,7 @@ reg [15:0] timerA;
 reg [15:0] counterA;
 reg [15:0] accu;
 
-reg hsync_int, vsync_int;
+reg hsync_int = 1, vsync_int = 1;
 always @*
     //hsync <= ~(thresh_bitcount == 8);
     hsync <= hsync_int;
@@ -73,64 +75,50 @@ reg [7:0] vscount = 0;
 
 integer hsync_time = HSYNC_TIME;
 integer vsync_in_time = VSYNC_IN_TIME;
+integer line_time = LINE_TIME;
+integer line_minus_hsync = LINE_TIME - HSYNC_TIME;
+integer line_minus_3x_hsync = LINE_TIME - HSYNC_TIME * 3;
+
+reg [15:0] hsync_dll = 0;
+reg more_zeroes_z = 0;
     
 always @(posedge clk) 
     if (ce) begin
         error <= 1'b0;
         if (timerA > 0) timerA <= timerA - 1'b1;
         counterA <= counterA + 1'b1;
-        
-        case (state)
-        S1: begin
-                vsync_int <= 1;
-                hsync_int <= 1;
-                // waiting
-                if (more_zeroes) begin
-                    $display("S1: detected start of sync pulse");
-                    hsync_int <= 0;
-                    state <= S2;
-                    counterA <= 0;
-                    accu <= 0;
-                end
+        accu <= accu + cvbs;
+
+        if (hsync_dll == 0) 
+            hsync_dll <= LINE_TIME;
+        else             
+            hsync_dll <= hsync_dll - 1'b1;
+
+        if (hsync_dll == line_time) begin
+            hsync_int <= 0;
+            accu <= 0;
+        end
+        else if (hsync_dll == line_minus_hsync) begin
+            hsync_int <= 1;
+
+            if (more_zeroes) begin
+                r_blacklevel <= (accu >> 7) + 12;
+                r_threshold <= (accu >> 7) + 8;
             end
-        S2: begin
-                //$display("counterA=%d hsync_time=%d", counterA, hsync_time);
-                accu <= accu + cvbs;
-                if (counterA == 128) begin
-                    r_blacklevel <= (accu >> 7) + 12;
-                    r_threshold <= (accu >> 7) + 8;
-                end
-                
-                if (hsync_int == 0 && counterA > hsync_time)
-                begin
-                    $display("S2: hsync_int <= 1 at counterA=%d", counterA);
-                    hsync_int <= 1;
-                end
-                    
-                if (more_ones) begin
-                    //r_blacklevel <= cvbs;
-                    //r_threshold <= cvbs >> 1;
-                    counterA <= 0;
-                    $display("S2: sync pulse has ended counterA=%d vsync threshold time=%d", counterA, vsync_in_time);
-                    if (counterA > vsync_in_time) begin
-                        vsync_int <= 0;
-                        timerA <= VSYNC_LONG;
-                        state <= S3;
-                    end
-                    else
-                        state <= S1;
-                end
-            end
-        S3: begin
-                if (timerA == 0) begin
-                    vsync_int <= 1;
-                    counterA <= 0;
-                    state <= S1;
-                end
-            end
-        default:;
-        endcase
+        end
+
+        more_zeroes_z <= more_zeroes;
+        if (~more_zeroes_z && more_zeroes) begin
+            hsync_dll <= LINE_TIME;
+        end
+
+        if (vsync_int && more_zeroes && hsync_dll == line_minus_3x_hsync) begin
+            vsync_int <= 0;
+            timerA <= VSYNC_LONG;
+        end
+
+        if (~vsync_int && timerA == 0) 
+            vsync_int <= 1;
     end
 
 endmodule
-
