@@ -34,7 +34,6 @@ always @(posedge clk) begin
     porch_delay <= {porch_delay[HSYNC_DELAY-2:0], porch_int};
     hsync <= hsync_delay[HSYNC_DELAY-1];
     porch <= porch_delay[HSYNC_DELAY-1];
-    //hsync <= hsync_int;
 end    
     
 always @*

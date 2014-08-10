@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<instance entity-name="altera_fir_compiler_ii" version="13.0" >
+<generic name="deviceFamily" value="Cyclone II" />
+<generic name="filterType" value="Single Rate" />
+<generic name="interpFactor" value="1" />
+<generic name="decimFactor" value="1" />
+<generic name="L_bandsFilter" value="All taps" />
+<generic name="clockRate" value="96" />
+<generic name="clockSlack" value="0" />
+<generic name="speedGrade" value="Medium" />
+<generic name="coeffReload" value="false" />
+<generic name="baseAddress" value="0" />
+<generic name="readWriteMode" value="Read/Write" />
+<generic name="backPressure" value="false" />
+<generic name="symmetryMode" value="Non Symmetry" />
+<generic name="delayRAMBlockThreshold" value="20" />
+<generic name="dualMemDistRAMThreshold" value="1280" />
+<generic name="mRAMThreshold" value="1000000" />
+<generic name="hardMultiplierThreshold" value="-1" />
+<generic name="inputRate" value="96" />
+<generic name="inputChannelNum" value="1" />
+<generic name="inputType" value="Signed Binary" />
+<generic name="inputBitWidth" value="7" />
+<generic name="inputFracBitWidth" value="0" />
+<generic name="coeffSetRealValue" value="-3.77586492999E-35,8.1961568035E-6,7.01273230449E-5,2.55356280409E-4,6.56415823417E-4,0.00139181630382,0.00260329276111,0.00444582111502,0.00707032797094,0.0106006203528,0.01510755794,0.0205845689066,0.0269290209183,0.0339335650896,0.0412903826783,0.0486094428527,0.0554497126472,0.061360112633,0.0659252617551,0.0688100232582,0.0697967544677,0.0688100232582,0.0659252617551,0.061360112633,0.0554497126472,0.0486094428527,0.0412903826783,0.0339335650896,0.0269290209183,0.0205845689066,0.01510755794,0.0106006203528,0.00707032797094,0.00444582111502,0.00260329276111,0.00139181630382,6.56415823417E-4,2.55356280409E-4,7.01273230449E-5,8.1961568035E-6,-3.77586492999E-35" />
+<generic name="coeffType" value="Signed Binary" />
+<generic name="coeffScaling" value="Auto" />
+<generic name="coeffBitWidth" value="8" />
+<generic name="coeffFracBitWidth" value="0" />
+<generic name="outType" value="Signed Binary" />
+<generic name="outMSBRound" value="Saturating" />
+<generic name="outMsbBitRem" value="4" />
+<generic name="outLSBRound" value="Rounding" />
+<generic name="outLsbBitRem" value="10" />
+<generic name="resoureEstimation" value="1000,1200,10" />
+<generic name="bankCount" value="1" />
+<generic name="bankDisplay" value="0" />
+</instance>

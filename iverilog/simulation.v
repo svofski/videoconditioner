@@ -92,7 +92,7 @@ always @(posedge clk) begin
         $display("Line %d", line);
     end
 `ifdef VECTORSYNC
-    if (line > 22 && line < 25) begin
+    if (line > 23) begin
         glob <= 0;
         if (floor_r > 0) 
             floor_r <= floor_r - 6;
@@ -103,20 +103,7 @@ always @(posedge clk) begin
         else if (pixel < FPORCH + HS + BPORCH)
             cvbs <= floor + BLACK;
         else 
-            cvbs <= floor + BLACK;
-    end
-    else if (line >= 25) begin
-        glob <= 0;
-        if (floor_r > 0) 
-            floor_r <= floor_r - 6;
-        if (pixel < FPORCH) 
-            cvbs <= floor + BLACK;
-        else if (pixel < FPORCH + HS) 
-            cvbs <= floor;
-        else if (pixel < FPORCH + HS + BPORCH)
-            cvbs <= floor + BLACK;
-        else 
-            cvbs <= 15 + pixel[3:0];
+            cvbs <= floor + BLACK + (line > 25 ? pixel[3:0] : 0);
     end 
     else begin
         glob <= glob + 1;
