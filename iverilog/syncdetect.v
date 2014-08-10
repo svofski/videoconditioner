@@ -1,20 +1,8 @@
 `default_nettype none
 
 module syncdetect(input clk, input ce, input [5:0] cvbs, output reg hsync, output reg vsync, output [5:0] blacklevel, output reg error, output reg porch, output [5:0] threshold);
-//parameter THRESH = 12;
-//parameter FILLCOUNT = 18; == 9*2 for BK-0010
-parameter FILLCOUNT = 23 * 2; // vector-06c
-parameter S1 = 0;
-parameter S2 = 1;
-parameter S2A = 11;
-parameter S3 = 2;
-parameter S4 = 3;
-parameter S5 = 4;
-parameter S6 = 5;
-
 parameter CLK = 24e6;
 parameter HSYNC_TIME = CLK * 4.7e-6;
-//parameter HSYNC_TIME = CLK * 8.7e-6; // HSYNC pulse length =  10.7uS on real Vector-06C
 parameter BACKPORCH_TIME = CLK * 5.7e-6;
 parameter REST_TIME = CLK * 64e-6 - (HSYNC_TIME + BACKPORCH_TIME);
 
@@ -39,10 +27,13 @@ reg [15:0] accu;
 
 parameter HSYNC_DELAY = 32;
 reg [HSYNC_DELAY-1:0] hsync_delay;
-reg hsync_int = 1, vsync_int = 1;
+reg [HSYNC_DELAY-1:0] porch_delay;
+reg hsync_int = 1, vsync_int = 1, porch_int = 0;
 always @(posedge clk) begin
     hsync_delay <= {hsync_delay[HSYNC_DELAY-2:0], hsync_int};
+    porch_delay <= {porch_delay[HSYNC_DELAY-2:0], porch_int};
     hsync <= hsync_delay[HSYNC_DELAY-1];
+    porch <= porch_delay[HSYNC_DELAY-1];
     //hsync <= hsync_int;
 end    
     
@@ -74,7 +65,7 @@ integer line_minus_3x_hsync = LINE_TIME - HSYNC_TIME * 3;
 
 reg [15:0] hsync_dll = 0;
 reg more_zeroes_z = 0;
-reg vsync_deadtime;
+reg vsync_deadtime = 0;
     
 always @(posedge clk) 
     if (ce) begin
@@ -89,7 +80,7 @@ always @(posedge clk)
             hsync_dll <= hsync_dll - 1'b1;
 
         if (hsync_dll == line_time) begin
-            porch <= 0;
+            porch_int <= 0;
             hsync_int <= 0;
             accu <= 0;
         end
@@ -98,7 +89,7 @@ always @(posedge clk)
             
             if (vsync_int && ~vsync_deadtime) begin
                 timerA <= BACKPORCH_TIME;
-                porch <= 1;
+                porch_int <= 1;
             end
 
             if (more_zeroes) begin
@@ -107,8 +98,8 @@ always @(posedge clk)
             end
         end
 
-        if (porch && timerA == 0)
-            porch <= 0;
+        if (porch_int && timerA == 0)
+            porch_int <= 0;
         
         more_zeroes_z <= more_zeroes;
         if (~more_zeroes_z && more_zeroes) begin
