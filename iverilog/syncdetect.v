@@ -1,6 +1,8 @@
 `default_nettype none
 
-module syncdetect(input clk, input ce, input [5:0] cvbs, output reg hsync, output reg vsync, output [5:0] blacklevel, output reg error, output reg porch, output [5:0] threshold, output reg [9:0] line_number);
+module syncdetect(input clk, input ce, input [5:0] cvbs, output reg hsync, output reg vsync, 
+    output [5:0] blacklevel, output [5:0] floorlevel, 
+    output reg porch, output [5:0] threshold, output reg [9:0] line_number);
 parameter CLK = 24e6;
 parameter HSYNC_TIME = CLK * 4.7e-6;
 parameter BACKPORCH_TIME = CLK * 5.7e-6;
@@ -17,9 +19,11 @@ parameter VSYNC_DEADTIME = CLK * 1490e-6 / 2;
 
 assign threshold = r_threshold;
 assign blacklevel = r_blacklevel;
+assign floorlevel = r_floorlevel;
 
 reg [5:0] r_threshold = 10;
 reg [5:0] r_blacklevel = 12;
+reg [5:0] r_floorlevel = 0;
 
 reg [15:0] timerA;
 reg [15:0] counterA;
@@ -68,7 +72,6 @@ reg vsync_deadtime = 0;
     
 always @(posedge clk) 
     if (ce) begin
-        error <= 1'b0;
         if (timerA > 0) timerA <= timerA - 1'b1;
         counterA <= counterA + 1'b1;
         accu <= accu + cvbs;
@@ -95,6 +98,7 @@ always @(posedge clk)
             if (more_zeroes) begin
                 r_blacklevel <= (accu >> 7) + 8;
                 r_threshold <= (accu >> 7) + 8;
+                r_floorlevel <= (accu >> 7);
             end
         end
 

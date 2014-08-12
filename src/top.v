@@ -100,10 +100,11 @@ adc #(.RESOLUTION(RESOLUTION)) adc_blue (.clk(clk_adc), .lvds(LVDS[0]), .feedbac
 wire hsync, vsync;
 wire [5:0] blacklevel;
 wire [5:0] threshold;
+wire [5:0] floorlevel;
 assign blacklevel_pin = blacklevel;
 wire porch;
 wire [9:0] line_number;
-syncdetect syncdetect1(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered_sync), .hsync(hsync), .vsync(vsync), .blacklevel(blacklevel), .line_number(line_number), .porch(porch), .threshold(threshold));
+syncdetect syncdetect1(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered_sync), .hsync(hsync), .vsync(vsync), .floorlevel(floorlevel), .blacklevel(blacklevel), .line_number(line_number), .porch(porch), .threshold(threshold));
     
 assign GPIO_0[0] = hsync;
 assign GPIO_0[1] = vsync;
@@ -209,9 +210,9 @@ always @(posedge CLOCK_24[0])
 
 always @*
 begin
-    red <=  16 - (filtered_red >> 2);
-    green <= 16 - (filtered_green >> 2);
-    blue <= 16 - (filtered_blue >> 2);
+    red <=  16 - ((filtered_red  >> 2)    );//+ (floorlevel >> 2));
+    green <= 16 - ((filtered_green  >> 2) );//+ (floorlevel >> 2));
+    blue <= 16 - ((filtered_blue >> 2)    );//+ (floorlevel >> 2));
 end
 
 wire [5:0] tv_luma;
@@ -220,7 +221,7 @@ wire [5:0] tv_cvbs;
 video video1(
     .clk24(CLOCK_24[0]),
     .clk16fsc(clkpalFSC),
-    .tv_mode(2'b00),
+    .tv_mode({SW[5], 1'b0}),
     .tv_hs_i(hsync),
     .tv_vs_i(vsync),
     .tv_porch_i(porch),

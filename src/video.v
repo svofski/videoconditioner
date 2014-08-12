@@ -18,7 +18,7 @@ module video(
 );
 
 parameter V_SYNC = 0;
-parameter V_REF  = 12;
+parameter V_REF  = 11;
 
 // input clocks
 input           clk24;
@@ -86,7 +86,7 @@ chroma_offset chroma_offset1(.chroma_in(tv_chroma), .chroma_out(chroma_clamped))
 always @*
     casex ({tv_sync,tv_colorburst,tv_blank})
     3'b0xx: tv_cvbs_o <= V_SYNC;
-    3'b111: tv_cvbs_o <= V_REF + 2 - tv_sin[7:5]; 
+    3'b111: tv_cvbs_o <= V_REF + 3 - tv_sin[7:5]; 
     3'b101: tv_cvbs_o <= V_REF;
     default:tv_cvbs_o <= cvbs_clamped; 
     endcase
