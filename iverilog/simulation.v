@@ -11,6 +11,8 @@ module simulation;
 // 
 
 parameter STEP = 416;
+parameter STEP300 = 33;
+parameter STEP71 = 141;
 
 parameter CLK = 24e6;
 
@@ -48,7 +50,7 @@ parameter BLACK = 12;
 parameter VSYNC_LONG_N = CLK * 28e-6;
 `endif
 
-reg clk;
+reg clk, clk300, clk4fsc;
 integer line;
 integer pixel;
 integer glob;
@@ -70,6 +72,13 @@ reg hsync, vsync;
   end
 
   initial begin
+    //clk300 = 1'b1;
+    //forever #(STEP300/2) clk300 = ~clk300;
+    clk4fsc = 1'b1;
+    forever #(STEP71/2) clk4fsc = ~clk4fsc;
+  end
+
+  initial begin
     $display("Simulation parameters:");
     $display("Clock=%d", CLK);
     $display("Line period = %dus (%d clocks)", LINE_T*1e6, LINE);
@@ -77,6 +86,7 @@ reg hsync, vsync;
     $display("HSYNC time=%dus (%d clocks)", HS_T*1e6, HS);
     $display("Back porch time=%dus (%d clocks)", BPORCH_T*1e6, BPORCH);
   end
+
 
 reg [15:0] floor_r = 0;
 wire [5:0] floor = floor_r[15:12];
@@ -188,7 +198,8 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    if (line == 27) begin
+    //if (line == 27) begin
+    if (line == 2) begin
         $display("Simulation terminated");
         $finish;
     end
@@ -209,5 +220,45 @@ end
 syncdetect detector(.clk(clk), .ce(det_ce), .cvbs(cvbs), .hsync(det_hs), .vsync(det_vs), .blacklevel(det_black), .porch(det_porch));
 
 wire xsync = ~(det_hs ^ det_vs);
+
+wire [5:0] tv_luma;
+wire [5:0] tv_chroma;
+wire [5:0] tv_cvbs;
+
+
+reg [5:0] grey = 0;
+
+
+reg [5:0] red = 0;
+reg [5:0] green = 0;
+reg [5:0] blue = 0;
+always @(posedge clk)
+begin
+    if (grey < 24)
+        grey <= grey + 1;
+    else
+        grey <= 0;
+
+    blue <= grey;
+    red <= grey;
+    green <= grey;
+end
+
+video video1(
+    .clk24(clk),
+    .clk16fsc(clk4fsc),
+    .tv_mode(2'b00),
+    .tv_hs_i(det_hs),
+    .tv_vs_i(det_vs),
+    .tv_porch_i(det_porch),
+    .tv_luma_o(tv_luma),
+    .tv_chroma_o(tv_luma),
+    .tv_cvbs_o(tv_chroma),
+
+    .tv_red_i(red),
+    .tv_green_i(green),
+    .tv_blue_i(blue)
+);
+
 
 endmodule

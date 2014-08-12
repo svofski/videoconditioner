@@ -1,6 +1,6 @@
 `default_nettype none
 
-module syncdetect(input clk, input ce, input [5:0] cvbs, output reg hsync, output reg vsync, output [5:0] blacklevel, output reg error, output reg porch, output [5:0] threshold);
+module syncdetect(input clk, input ce, input [5:0] cvbs, output reg hsync, output reg vsync, output [5:0] blacklevel, output reg error, output reg porch, output [5:0] threshold, output reg [9:0] line_number);
 parameter CLK = 24e6;
 parameter HSYNC_TIME = CLK * 4.7e-6;
 parameter BACKPORCH_TIME = CLK * 5.7e-6;
@@ -85,6 +85,7 @@ always @(posedge clk)
         end
         else if (hsync_dll == line_minus_hsync) begin
             hsync_int <= 1;
+            line_number <= line_number + 1;
             
             if (vsync_int && ~vsync_deadtime) begin
                 timerA <= BACKPORCH_TIME;
@@ -107,6 +108,7 @@ always @(posedge clk)
 
         if (vsync_int && more_zeroes && hsync_dll == line_minus_3x_hsync && ~vsync_deadtime) begin
             vsync_int <= 0;
+            line_number <= 0;
             timerA <= VSYNC_LONG;
         end
 

@@ -1,4 +1,4 @@
-
+`default_nettype none
 `define FILTER
 
 
@@ -29,7 +29,7 @@ module top(
         input           UART_RXD,
 */
         output [12:0]   GPIO_0,
-        output [5:0] sample_pin,
+        output [7:0] sample_pin,
         output       sample_ce_pin,
         output [5:0] blacklevel_pin,
 
@@ -56,74 +56,54 @@ parameter DAC_RESOLUTION = 6;
 // LVDS2 = 2l - 2r
 // LVDS3 = 1l - 1r
 
-//reg [3:0] ctr;
-//always @(posedge CLOCK_24[0])
-//begin
-//    ctr <= ctr + 1'b1;
-//end
-
-//assign ADCINT = ctr;
-//assign LVDS = ctr;
-
 reg [12:0] divctr;
 always @(posedge CLOCK_24[0])
     divctr <= divctr + 1'b1;
 //wire sample_ce = 1'b1;//divctr[0] == 0;
 wire sample_ce = 1'b1;//divctr[0] == 0;
 
-assign sample_pin = sample;
+assign sample_pin = filtered_green;
 assign sample_ce_pin = CLOCK_24[0]; 
 
 wire clk_adc;
-wire clkx = clk_adc;// = clk_adc | clk_adc180;
 wire clk_out;
+wire clk_palgen;
 
-pll(.inclk0(CLOCK_24[0]), .c0(clk_adc));//, .c1(clk_adc180));
-//assign clk_out = clk_adc;
-outpll(.inclk0(clk50mhz), .c0(clk_out), .c1(clk100));
+pll pll1(.inclk0(CLOCK_24[0]), .c0(clk_adc), .c1(clk_palgen));
+outpll pll2(.inclk0(clk50mhz), .c0(clk_out));
 
-wire [RESOLUTION-1:0] adc1_val;
+// Derive clock for PAL subcarrier: 4x 4.43361875
+`define PHACC_WIDTH 32
+`define PHACC_DELTA 793426981
 
-sigmadelta adc1(.clk(clkx), .lvds(LVDS[3]), .feedback(ADCINT[3]));
+reg [`PHACC_WIDTH-1:0] pal_phase;
+wire [`PHACC_WIDTH-1:0] pal_phase_next;
+assign pal_phase_next = pal_phase + `PHACC_DELTA;
+reg palclkreg;
+wire clkpalFSC;
+always @(posedge clk_adc) begin
+    pal_phase <= pal_phase_next;
+end
 
-// factor = 80 good for filter + limiter = 24
-accumulator #(.RESOLUTION(RESOLUTION), .FACTOR(110)) cie1(.clk(clkx), .stream(ADCINT[3]), .value(adc1_val));
+ayclkdrv clkbufpalfsc(pal_phase[`PHACC_WIDTH-1], clkpalFSC);
 
-reg [29:0] filtered;
-wire [29:0] filtered_u;
-wire filtered_valid;
 
-reg[1:0] div4;
-wire filter_ce = div4 == 0;
-always @(posedge clk_adc)
-    div4 <= div4 + 1'b1;
-    
-`ifdef FILTER
-filter (
-    .clk(clk_adc),
-    .reset_n(1),
-    .ast_sink_data(adc1_val),
-    .ast_sink_valid(filter_ce),
-    .ast_sink_error(2'b0),
-    .ast_source_data(filtered_u),
-    .ast_source_valid(filtered_valid)
-);
-`else
-    assign filtered_u = adc1_val;
-    assign filtered_valid = filter_ce;
-`endif
-
-always @(posedge clk_adc) 
-    if (filtered_valid)
-        filtered <= filtered_u;
+wire [RESOLUTION-1:0] filtered_sync;
+wire [RESOLUTION-1:0] filtered_red;
+wire [RESOLUTION-1:0] filtered_green;
+wire [RESOLUTION-1:0] filtered_blue;
+adc #(.RESOLUTION(RESOLUTION)) adc_sync (.clk(clk_adc), .lvds(LVDS[3]), .feedback(ADCINT[3]), .filtered(filtered_sync));
+adc #(.RESOLUTION(RESOLUTION)) adc_red  (.clk(clk_adc), .lvds(LVDS[2]), .feedback(ADCINT[2]), .filtered(filtered_red));
+adc #(.RESOLUTION(RESOLUTION)) adc_green(.clk(clk_adc), .lvds(LVDS[1]), .feedback(ADCINT[1]), .filtered(filtered_green));
+adc #(.RESOLUTION(RESOLUTION)) adc_blue (.clk(clk_adc), .lvds(LVDS[0]), .feedback(ADCINT[0]), .filtered(filtered_blue));
 
 wire hsync, vsync;
 wire [5:0] blacklevel;
 wire [5:0] threshold;
 assign blacklevel_pin = blacklevel;
-wire error;
 wire porch;
-syncdetect(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered), .hsync(hsync), .vsync(vsync), .blacklevel(blacklevel), .error(error), .porch(porch), .threshold(threshold));
+wire [9:0] line_number;
+syncdetect syncdetect1(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered_sync), .hsync(hsync), .vsync(vsync), .blacklevel(blacklevel), .line_number(line_number), .porch(porch), .threshold(threshold));
     
 assign GPIO_0[0] = hsync;
 assign GPIO_0[1] = vsync;
@@ -135,33 +115,28 @@ reg[RESOLUTION - 1:0] schmiltered;
 always @(posedge CLOCK_24[0])
     if (SW[9])
     // cookie cut sync + limited signal    
-    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered < blacklevel ? blacklevel : filtered > blacklevel + 24 ? blacklevel + 24 : filtered;
+    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered_sync < blacklevel ? blacklevel : filtered_sync > blacklevel + 24 ? blacklevel + 24 : filtered_sync;
     // cookie cut sync, no limiter
     //schmiltered <= ~xsync ? 0 : filtered;
     else
     // plain filtered
-    schmiltered <= filtered;
-
-//parameter FIRLSB = 16;
-parameter FIRLSB = 0;
+    schmiltered <= filtered_sync;
 
 reg [RESOLUTION-1:0] sample;
 always @(posedge CLOCK_24[0])
     if (sample_ce)
-        sample <= 
-            schmiltered;
-            //filtered[RESOLUTION - 1 + FIRLSB: FIRLSB];
-            //adc1_val;
+        sample <= schmiltered;
 
-reg [DAC_RESOLUTION:0] dac;
-always @(posedge clk_out)
-    dac <= dac[DAC_RESOLUTION-1:0] + sample[RESOLUTION-1:RESOLUTION-DAC_RESOLUTION];
+reg [DAC_RESOLUTION:0] ydac;
+reg [DAC_RESOLUTION:0] cdac;
+always @(posedge clk_out)         // sample[...]
+begin
+    ydac <= ydac[DAC_RESOLUTION-1:0] + tv_luma[RESOLUTION-1:RESOLUTION-DAC_RESOLUTION]; 
+    cdac <= cdac[DAC_RESOLUTION-1:0] + tv_chroma[RESOLUTION-1:RESOLUTION-DAC_RESOLUTION]; 
+end
 
-    
-    
-wire [3:0] four = {4{dac[DAC_RESOLUTION]}};
+wire [3:0] four = {4{ydac[DAC_RESOLUTION]}};
 //wire [3:0] four = {4{ADCINT[3]}};
-
 
 wire [3:0] nopwm = sample[RESOLUTION-1:RESOLUTION-4];
 
@@ -176,43 +151,88 @@ always @(posedge CLOCK_24[0])
 
 wire [5:0] sin;        
 sintable sintable(.address(babor), .clock(CLOCK_24[0]), .q(sin));
-        
-        
+                
 wire [5:0] vo = babor;
-
-
 wire [11:0] dacval;
-dactable dactaklakpak(.address(sample), .clock(CLOCK_24[0]), .q(dacval));
+dactable dactaklakpak(.address(tv_cvbs), .clock(clkpalFSC), .q(dacval));
+
+//reg [3:0] div16;
+//always @(posedge clkpalFSC)
+//    div16 <= div16 + 1;
+//assign dacval = {12{div16[3]}};
 
 
 assign VGA_R = dacval[3:0];
 assign VGA_G = dacval[7:4];
 assign VGA_B = dacval[11:8];
-assign GPIO_0[10] = four[0];
-assign GPIO_0[11] = 1'b0;
+
+//assign VGA_R = four;
+//assign VGA_G = four;
+//assign VGA_B = four;
+
+assign GPIO_0[10] = ydac[DAC_RESOLUTION];
+assign GPIO_0[11] = cdac[DAC_RESOLUTION];
 
 
 SEG7_LUT_4 seg7display(HEX0, HEX1, HEX2, HEX3, {2'b0, threshold, 2'b0, blacklevel});
 
 
-endmodule
+//wire [5:0] grey = sample > blacklevel ? sample - blacklevel : 0;
 
-module sigmadelta(input clk, input lvds, output reg feedback);
-    always @(posedge clk) 
-        feedback <= lvds;
-endmodule
 
-module accumulator(clk, stream, value);
-parameter RESOLUTION = 8;
-parameter FACTOR = 16;
-input clk;
-input stream;
-output reg [RESOLUTION-1:0] value;
+// 24 seems to be the limit before overflow
 
-reg [FACTOR-1:0] buffer;
-always @(posedge clk) begin
-    value <= value + stream - buffer[FACTOR-1];
-    buffer <= {buffer[FACTOR-2:0], stream};
+reg [6:0] grey;
+reg [6:0] red;
+reg [6:0] green;
+reg [6:0] blue;
+/*
+always @(posedge CLOCK_24[0])
+        if (porch || ~hsync || line_number < 40)// || grey == 16)
+        begin
+            grey <= 0;
+            red <= 0;
+            green <= 15;
+            blue <= 16;
+        end
+        else begin
+            if (grey[6:3] == 15) grey <= 0; else grey <= grey + 1;//line_number;
+          //if (red[6:3] == 15)  red <= 0;  else red <= red + 1;//line_number;
+            //if (green == 0)green <= 15<<3;  else green <= green - 1;//line_number;
+            red <= line_number;
+            green <= line_number;
+            blue <= line_number;
+            //green <= line_number;
+            //if (blue[6:2] == 16) blue <= 0; else blue <= blue + 1;//line_number;
+        end
+*/
+
+always @*
+begin
+    red <=  16 - (filtered_red >> 2);
+    green <= 16 - (filtered_green >> 2);
+    blue <= 16 - (filtered_blue >> 2);
 end
 
+wire [5:0] tv_luma;
+wire [5:0] tv_chroma;
+wire [5:0] tv_cvbs;
+video video1(
+    .clk24(CLOCK_24[0]),
+    .clk16fsc(clkpalFSC),
+    .tv_mode(2'b00),
+    .tv_hs_i(hsync),
+    .tv_vs_i(vsync),
+    .tv_porch_i(porch),
+    .tv_luma_o(tv_luma),
+    .tv_chroma_o(tv_chroma),
+    .tv_cvbs_o(tv_cvbs),
+
+    .tv_red_i(SW[8] ? red : 0),
+    .tv_green_i(SW[7] ? green : 0),
+    .tv_blue_i(SW[6] ? blue : 0)
+);
+
+
 endmodule
+
