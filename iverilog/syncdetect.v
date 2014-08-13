@@ -2,7 +2,8 @@
 
 module syncdetect(input clk, input ce, input [5:0] cvbs, output reg hsync, output reg vsync, 
     output [5:0] blacklevel, output [5:0] floorlevel, 
-    output reg porch, output [5:0] threshold, output reg [9:0] line_number);
+    output reg porch, output [5:0] threshold, output reg [9:0] line_number,
+    input sync_offset);
 parameter CLK = 24e6;
 parameter HSYNC_TIME = CLK * 4.7e-6;
 parameter BACKPORCH_TIME = CLK * 5.7e-6;
@@ -13,9 +14,8 @@ parameter LINE_TIME = CLK * 64e-6;
 //parameter VSYNC_IN_TIME = CLK * 27e-6; // Vector-06C VSYNC zero time
 parameter VSYNC_IN_TIME = HSYNC_TIME * 3;
 
-//parameter VSYNC_LONG = CLK * 1490e-6; // this matches Vector-06C VSYNC but it's awfully long
-parameter VSYNC_LONG = CLK * 1490e-6 / 2;
-parameter VSYNC_DEADTIME = CLK * 1490e-6 / 2;
+parameter VSYNC_LONG = CLK * 8 * 64e-6;
+parameter VSYNC_DEADTIME = CLK * 20 * 64e-6;
 
 assign threshold = r_threshold;
 assign blacklevel = r_blacklevel;
@@ -30,14 +30,15 @@ reg [15:0] counterA;
 reg [15:0] accu;
 
 parameter HSYNC_DELAY = 32;
+parameter HSYNC_DELAY_SMALL = 0;
 reg [HSYNC_DELAY-1:0] hsync_delay;
 reg [HSYNC_DELAY-1:0] porch_delay;
 reg hsync_int = 1, vsync_int = 1, porch_int = 0;
 always @(posedge clk) begin
     hsync_delay <= {hsync_delay[HSYNC_DELAY-2:0], hsync_int};
     porch_delay <= {porch_delay[HSYNC_DELAY-2:0], porch_int};
-    hsync <= hsync_delay[HSYNC_DELAY-1];
-    porch <= porch_delay[HSYNC_DELAY-1];
+    hsync <= sync_offset ? hsync_delay[HSYNC_DELAY-1] : hsync_int;
+    porch <= sync_offset ? porch_delay[HSYNC_DELAY-1] : porch_int; 
 end    
     
 always @*
@@ -63,8 +64,10 @@ always @(posedge clk)
     end
     
 integer line_time = LINE_TIME;
+integer line_time_half = LINE_TIME / 2;
 integer line_minus_hsync = LINE_TIME - HSYNC_TIME;
 integer line_minus_3x_hsync = LINE_TIME - HSYNC_TIME * 3;
+integer hsync_time = HSYNC_TIME;
 
 reg [15:0] hsync_dll = 0;
 reg more_zeroes_z = 0;
@@ -100,6 +103,12 @@ always @(posedge clk)
                 r_threshold <= (accu >> 7) + 8;
                 r_floorlevel <= (accu >> 7);
             end
+        end 
+        else if (~vsync_int && (hsync_dll == line_time_half)) begin
+            hsync_int <= 0;
+        end
+        else if (~vsync_int && (hsync_dll == line_time_half - hsync_time)) begin
+            hsync_int <= 1;
         end
 
         if (porch_int && timerA == 0)

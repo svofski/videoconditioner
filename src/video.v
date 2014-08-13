@@ -18,7 +18,7 @@ module video(
 );
 
 parameter V_SYNC = 0;
-parameter V_REF  = 11;
+parameter V_REF  = 10;
 
 // input clocks
 input           clk24;
@@ -86,7 +86,7 @@ chroma_offset chroma_offset1(.chroma_in(tv_chroma), .chroma_out(chroma_clamped))
 always @*
     casex ({tv_sync,tv_colorburst,tv_blank})
     3'b0xx: tv_cvbs_o <= V_SYNC;
-    3'b111: tv_cvbs_o <= V_REF + 3 - tv_sin[7:5]; 
+    3'b111: tv_cvbs_o <= V_REF + 4 - tv_sin[7:5];  
     3'b101: tv_cvbs_o <= V_REF;
     default:tv_cvbs_o <= cvbs_clamped; 
     endcase
@@ -101,13 +101,13 @@ always @*
 always @* 
     casex ({tv_sync,tv_colorburst,tv_blank})
     3'b0xx: tv_chroma_o <= 16;
-    3'b111: tv_chroma_o <= 12 + tv_sin[7:5]; 
+    3'b111: tv_chroma_o <= 11 + tv_sin[7:5]; 
     3'b101: tv_chroma_o <= 16;
     default:tv_chroma_o <= chroma_clamped; 
     endcase
     
     
-always @* @(negedge clk16fsc)
+always @* @(posedge clk16fsc)
     case ({tv_line[0]^pal_fieldalt,tv_phase0[3:0]})
     0:  tv_chroma <= tvUV[0];
     1:  tv_chroma <= tvUV[1];
@@ -256,7 +256,8 @@ wire signed [13:0] c03 = c3 * B;
 wire signed [13:0] s = c01 + c02 + c03;
 //assign uvsum = s[11:5];  // -- bright but overflows in a couple of places
 //assign uvsum = s[12:6];  // -- dim but full coverage
-assign uvsum = /* s[13:7] + */ s[12:6];
+//assign uvsum = /* s[13:7] + */ s[12:6];
+assign uvsum = s[13:8] + s[12:6]; // this is weird but it appears to be working
 
 endmodule
 

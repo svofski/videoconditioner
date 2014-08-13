@@ -104,7 +104,9 @@ wire [5:0] floorlevel;
 assign blacklevel_pin = blacklevel;
 wire porch;
 wire [9:0] line_number;
-syncdetect syncdetect1(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered_sync), .hsync(hsync), .vsync(vsync), .floorlevel(floorlevel), .blacklevel(blacklevel), .line_number(line_number), .porch(porch), .threshold(threshold));
+syncdetect syncdetect1(.clk(CLOCK_24[0]), .ce(1), .cvbs(filtered_sync), .hsync(hsync), .vsync(vsync), 
+    .floorlevel(floorlevel), .blacklevel(blacklevel), .line_number(line_number), .porch(porch), .threshold(threshold),
+    .sync_offset(SW[4]));
     
 assign GPIO_0[0] = hsync;
 assign GPIO_0[1] = vsync;
@@ -116,9 +118,9 @@ reg[RESOLUTION - 1:0] schmiltered;
 always @(posedge CLOCK_24[0])
     if (SW[9])
     // cookie cut sync + limited signal    
-    schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered_sync < blacklevel ? blacklevel : filtered_sync > blacklevel + 24 ? blacklevel + 24 : filtered_sync;
+    //schmiltered <= ~xsync ? 0 : porch ? blacklevel :  filtered_sync < blacklevel ? blacklevel : filtered_sync > blacklevel + 24 ? blacklevel + 24 : filtered_sync;
     // cookie cut sync, no limiter
-    //schmiltered <= ~xsync ? 0 : filtered;
+    schmiltered <= ~xsync ? 0 : filtered_sync;
     else
     // plain filtered
     schmiltered <= filtered_sync;
