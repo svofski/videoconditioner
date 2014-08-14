@@ -107,7 +107,7 @@ always @*
     endcase
     
     
-always @* @(posedge clk16fsc)
+always @* // @(posedge clk16fsc)
     case ({tv_line[0]^pal_fieldalt,tv_phase0[3:0]})
     0:  tv_chroma <= tvUV[0];
     1:  tv_chroma <= tvUV[1];
@@ -256,8 +256,8 @@ wire signed [13:0] c03 = c3 * B;
 wire signed [13:0] s = c01 + c02 + c03;
 //assign uvsum = s[11:5];  // -- bright but overflows in a couple of places
 //assign uvsum = s[12:6];  // -- dim but full coverage
-//assign uvsum = /* s[13:7] + */ s[12:6];
-assign uvsum = s[13:8] + s[12:6]; // this is weird but it appears to be working
+assign uvsum = /* s[13:7] + */ s[12:6];
+//assign uvsum = s[13:8] + s[12:6]; // this is weird but it appears to be working
 
 endmodule
 
