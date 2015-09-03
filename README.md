@@ -30,7 +30,7 @@ video by Jeri Ellsworth.
 
 Project structure
 -----------------
- * [hw](hw) contains KiCad files for the DE1 addon board. Check out the schematic in pdf.
+ * [hw](hw) contains KiCad files for the DE1 addon board. Check out the [schematic](hw/videoadc.pdf).
  * [iverilog](iverilog) contains simulation of video signals as produced by BK-0010, and their detection
  * [src](src) Altera Quartus II project and synthesizable core
 
