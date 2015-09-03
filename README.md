@@ -30,9 +30,9 @@ video by Jeri Ellsworth.
 
 Project structure
 -----------------
-hw contains KiCad files for the DE1 addon board. Check out the schematic in pdf.
-iverilog contains simulation of video signals as produced by BK-0010, and their detection
-src contains Altera Quartus II project
+ * [hw](hw) contains KiCad files for the DE1 addon board. Check out the schematic in pdf.
+ * [iverilog](iverilog) contains simulation of video signals as produced by BK-0010, and their detection
+ * [src](src) Altera Quartus II project and synthesizable core
 
 Results
 -------
@@ -60,6 +60,7 @@ RGB+Sync from Vector-06c
 
 [Larger](https://www.flickr.com/photos/svofski/14721995768/)
 
+[Work log on a forum (in Russian)](http://zx-pk.ru/showthread.php?t=23833)
 
 Conclusion
 ----------
