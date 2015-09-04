@@ -25,7 +25,7 @@ to implement custom sigma-delta ADC. No need for special chips!
 
 The basic working principles of such ADC are described in the paper called
 ["Leveraging FPGA and CPLD digital logic to implement analog to digital converters"](http://www.embedded.com/design/configurable-systems/4008891/Leveraging-FPGA-and-CPLD-digital-logic-to-implement-analog-to-digital-converters) 
-by Ted Marena. There's also an excellent explanation and demonstration of the principle in a [One Bit ADC](http://www.youtube.com/watch?v=DTCtx9eNHXE)
+by Ted Marena. There's also an excellent explanation and demonstration of the principle in [One Bit ADC](http://www.youtube.com/watch?v=DTCtx9eNHXE)
 video by Jeri Ellsworth.
 
 Project structure
@@ -69,7 +69,7 @@ within the specifications, a dedicated chip
 like TVP7002 would most likely do better. One interesting example of a project that uses TVP7002
 is [Grabor](http://www.rpg.fi/desaster/blog/2013/04/19/vga-framegrabbing-with-tvp7002/).
 But with a such chip I would not be able to extract nonstandard 
-video signal from Вектор-06ц, just like monitor cannot do that. Where flexibility and fine control is
+video signal from Вектор-06ц, just like my monitor cannot do that. Where flexibility and fine control is
 required, being able to implement video decoding on the lowest possible level can be beneficial.
 
 
