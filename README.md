@@ -38,27 +38,20 @@ Results
 -------
 The input board looks like this:
 
-![ADC](https://farm4.staticflickr.com/3851/14707757370_ebe90085c4_n.jpg)
+[![ADC](https://farm4.staticflickr.com/3851/14707757370_ebe90085c4_n.jpg)](https://www.flickr.com/photos/svofski/14707757370/)
 
-[Larger](https://www.flickr.com/photos/svofski/14707757370/)
 
 Single channel, B&W+Sync only with BK-0010:
 
-![BK-0010](https://farm4.staticflickr.com/3897/14770105076_e5189985cd_m.jpg)
-
-[Larger](https://www.flickr.com/photos/svofski/14770105076/)
+[![BK-0010](https://farm4.staticflickr.com/3897/14770105076_e5189985cd_m.jpg)](https://www.flickr.com/photos/svofski/14770105076/)
 
 Single channel passthrough from C64. Signal sampled and output on DE1 VGA pins without any conditioning.
 
-![C64](https://farm4.staticflickr.com/3893/14606473808_44bb70ef14_m.jpg)
-
-[Larger](https://www.flickr.com/photos/svofski/14606473808/)
+[![C64](https://farm4.staticflickr.com/3893/14606473808_44bb70ef14_m.jpg)](https://www.flickr.com/photos/svofski/14606473808/)
 
 RGB+Sync from Vector-06c
 
-![Vector-06c b2m test](https://farm6.staticflickr.com/5581/14721995768_ecebc7f1ab_n.jpg)
-
-[Larger](https://www.flickr.com/photos/svofski/14721995768/)
+[![Vector-06c b2m test](https://farm6.staticflickr.com/5581/14721995768_ecebc7f1ab_n.jpg)](https://www.flickr.com/photos/svofski/14721995768/)
 
 [Work log on a forum (in Russian)](http://zx-pk.ru/showthread.php?t=23833)
 
