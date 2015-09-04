@@ -72,4 +72,7 @@ But with a such chip I would not be able to extract nonstandard
 video signal from Вектор-06ц, just like my monitor cannot do that. Where flexibility and fine control is
 required, being able to implement video decoding on the lowest possible level can be beneficial.
 
-
+References
+----------
+ - [Leveraging FPGA and CPLD Digital Logic to Implement Analog To Digital Converters](/whitepapers/CreatingAnADCUsingFPGAResources.PDF) LatticeSemi Whitepaper
+ - [Simple Sigma-Delta ADC](/whitepapers/SimpleSigmaDeltaADCDocumentation.PDF) LatticeSemi RD1066
