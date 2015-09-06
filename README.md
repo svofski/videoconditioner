@@ -103,11 +103,11 @@ Single channel, B&W+Sync only with BK-0010:
 
 [![BK-0010](https://farm4.staticflickr.com/3897/14770105076_e5189985cd_m.jpg)](https://www.flickr.com/photos/svofski/14770105076/)
 
-Single channel passthrough from C64. Signal sampled and output on DE1 VGA pins without any conditioning.
+Single channel passthrough from C64. Signal sampled and output on DE1 VGA pins without any conditioning. Image credit: Deus ex Machina by Crest/Oxyron.
 
 [![Graphics by Crest/Oxyron](https://farm4.staticflickr.com/3893/14606473808_44bb70ef14_m.jpg)](https://www.flickr.com/photos/svofski/14606473808/)
 
-RGB+Sync from Vector-06c
+RGB+Sync from Vector-06c, internally PAL modulated in FPGA (captured by TV tuner)
 
 [![Vector-06c b2m test](https://farm6.staticflickr.com/5581/14721995768_ecebc7f1ab_n.jpg)](https://www.flickr.com/photos/svofski/14721995768/)
 
