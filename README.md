@@ -130,6 +130,13 @@ But with a such chip I would not be able to extract nonstandard
 video signal from Вектор-06ц, just like my monitor cannot do that. Where flexibility and fine control is
 required, being able to implement video decoding on the lowest possible level can be beneficial.
 
+The quality of input suffers from quite a bit of noise. I believe part of this is due to really
+long electrical connections that are hard to shorten because of the way the connectors on the board are done.
+In case of practical application it should be possible to improve the noise characteristics by
+implementing the inputs using shorter, carefully layed out trace pairs, hopefully reducing parasitic
+capacitance of the connections, thus allowing higher sampling frequency. Finding an optimal configuration
+of PCB layout for such application would be an interesting project in itself.
+
 References
 ==========
  - [Leveraging FPGA and CPLD Digital Logic to Implement Analog To Digital Converters](https://github.com/svofski/videoconditioner/tree/vector06c/whitepapers/CreatingAnADCUsingFPGAResources.PDF) LatticeSemi Whitepaper
