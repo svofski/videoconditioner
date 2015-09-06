@@ -88,7 +88,7 @@ assign VGA_B = dacval[11:8];
 
 Project files
 =============
- * [hw](https://github.com/svofski/videoconditioner/tree/vector06c/hw) contains KiCad files for the DE1 addon board. Check out the [schematic](hw/videoadc.pdf).
+ * [hw](https://github.com/svofski/videoconditioner/tree/vector06c/hw) contains KiCad files for the DE1 addon board. Check out the [schematic](https://github.com/svofski/videoconditioner/tree/vector06c/hw/videoadc.pdf).
  * [iverilog](https://github.com/svofski/videoconditioner/tree/vector06c/iverilog) contains simulation of video signals as produced by BK-0010, and their detection
  * [src](https://github.com/svofski/videoconditioner/tree/vector06c/src) Altera Quartus II project and synthesizable core
 
