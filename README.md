@@ -70,12 +70,12 @@ Linear DAC on VGA pins of DE1 board is more interesting. The resistor DAC on DE1
 or just 16 levels. This is not a lot for composite analog video. Here's what a saw waveform looks like
 if only 4 bits are used:
 
-![4 bits DAC saw wave](/screenshots/4-bits-RGB-all-equal.jpg) 
+![4 bits DAC saw wave](https://raw.githubusercontent.com/svofski/videoconditioner/vector06c/screenshots/4-bits-RGB-all-equal.jpg) 
 
 However with a little bit of magic, [described in detail in my article here](http://sensi.org/~svo/de1videodac/),
 it is possible to get much higher resolution from this DAC. Here's an example:
 
-![Linearized saw wave](/screenshots/linearized.jpg)
+![Linearized saw wave](https://raw.githubusercontent.com/svofski/videoconditioner/vector06c/screenshots/linearized.jpg)
 
 The magic DAC is implemented using a look-up table:
 ```
@@ -88,9 +88,9 @@ assign VGA_B = dacval[11:8];
 
 Project files
 =============
- * [hw](hw) contains KiCad files for the DE1 addon board. Check out the [schematic](hw/videoadc.pdf).
- * [iverilog](iverilog) contains simulation of video signals as produced by BK-0010, and their detection
- * [src](src) Altera Quartus II project and synthesizable core
+ * [hw](https://github.com/svofski/videoconditioner/tree/vector06c/hw) contains KiCad files for the DE1 addon board. Check out the [schematic](hw/videoadc.pdf).
+ * [iverilog](https://github.com/svofski/videoconditioner/tree/vector06c/iverilog) contains simulation of video signals as produced by BK-0010, and their detection
+ * [src](https://github.com/svofski/videoconditioner/tree/vector06c/src) Altera Quartus II project and synthesizable core
 
 Results
 =======
@@ -132,8 +132,8 @@ required, being able to implement video decoding on the lowest possible level ca
 
 References
 ==========
- - [Leveraging FPGA and CPLD Digital Logic to Implement Analog To Digital Converters](/whitepapers/CreatingAnADCUsingFPGAResources.PDF) LatticeSemi Whitepaper
- - [Simple Sigma-Delta ADC](/whitepapers/SimpleSigmaDeltaADCDocumentation.PDF) LatticeSemi RD1066
+ - [Leveraging FPGA and CPLD Digital Logic to Implement Analog To Digital Converters](https://github.com/svofski/videoconditioner/tree/vector06c/whitepapers/CreatingAnADCUsingFPGAResources.PDF) LatticeSemi Whitepaper
+ - [Simple Sigma-Delta ADC](https://github.com/svofski/videoconditioner/tree/vector06c/whitepapers/SimpleSigmaDeltaADCDocumentation.PDF) LatticeSemi RD1066
 
 
 -------
