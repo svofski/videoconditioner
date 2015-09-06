@@ -32,7 +32,7 @@ Block diagram
 -------------
 Here's a simplified diagram of the project:
 
-![Diagram](/screenshots/diagram.png)
+![Diagram](https://raw.githubusercontent.com/svofski/videoconditioner/vector06c/screenshots/diagram.png)
 
 The video signal comprised of H+V composite sync and R, G, B signals is level-shifted to be within
 range of LVDS inputs (see schematic) and is fed into the ADC. The ADC modules feed back the resulting
