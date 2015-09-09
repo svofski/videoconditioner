@@ -141,6 +141,7 @@ References
 ==========
  - [Leveraging FPGA and CPLD Digital Logic to Implement Analog To Digital Converters](https://github.com/svofski/videoconditioner/tree/vector06c/whitepapers/CreatingAnADCUsingFPGAResources.PDF) LatticeSemi Whitepaper
  - [Simple Sigma-Delta ADC](https://github.com/svofski/videoconditioner/tree/vector06c/whitepapers/SimpleSigmaDeltaADCDocumentation.PDF) LatticeSemi RD1066
+ - [FPGA RGB2VGA](https://sites.google.com/site/tandycocoloco/rgb2vga) scan doubler project by Felipe Antoniosi uses LVDS inputs to implement a successive approximation ADC
 
 
 -------
