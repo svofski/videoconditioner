@@ -146,5 +146,5 @@ References
 
 -------
 
-2014-2015 Viacheslav Slavinsky, http://sensi.org/~svo
+2014-2015 Viacheslav Slavinsky, https://www.sensi.org/~svo
 
